@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes & DevOps Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-dharmachakra"></i>
+            <span>K8s Dashboard</span>
+        </div>
+        <nav>
+            <ul>
+                <li class="active" data-content="kubernetes"><i class="fas fa-dharmachakra"></i> Kubernetes</li>
+                <li data-content="docker"><i class="fab fa-docker"></i> Docker</li>
+                <li data-content="ansible"><i class="fas fa-cogs"></i> Ansible</li>
+                <li data-content="terraform"><i class="fas fa-cube"></i> Terraform</li>
+                <li data-content="aws"><i class="fab fa-aws"></i> AWS</li>
+                <li data-content="azure"><i class="fab fa-microsoft"></i> Azure</li>
+                <li data-content="gcp"><i class="fab fa-google"></i> GCP</li>
+                <li data-content="git"><i class="fab fa-git-alt"></i> Git & GitHub</li>
+                <li data-content="jenkins"><i class="fas fa-server"></i> Jenkins</li>
+                <li data-content="linux"><i class="fab fa-linux"></i> Linux</li>
+                <li data-content="python"><i class="fab fa-python"></i> Python</li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <p>Created by <a href="https://github.com/mushahid25" target="_blank">mushahid25</a></p>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="topbar">
+            <div class="toggle-sidebar">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search commands...">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="mode-toggle">
+                <i class="fas fa-moon"></i>
+            </div>
+        </div>
+        
+        <div class="content-container">
+            <!-- Kubernetes Content -->
+            <div id="kubernetes" class="content active">
+                <h1>Kubernetes Reference Guide</h1>
+                <div class="toc">
+                    <h3>Table of Contents</h3>
+                    <ul>
+                        <li><a href="#k8s-core-kubectl">Core kubectl Commands</a>
+                            <ul>
+                                <li><a href="#k8s-get-info">Get Information</a></li>
+                                <li><a href="#k8s-create-modify">Create and Modify Resources</a></li>
+                                <li><a href="#k8s-pod-management">Pod Management</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#k8s-config">Configuration Management</a></li>
+                        <li><a href="#k8s-deployment">Deployment Management</a></li>
+                        <li><a href="#k8s-advanced">Advanced Operations</a></li>
+                        <li><a href="#k8s-use-cases">Common Use Cases</a></li>
+                        <li><a href="#k8s-simulator">Creating a Kubernetes Simulator</a></li>
+                    </ul>
+                </div>
+                
+                <section id="k8s-core-kubectl">
+                    <h2>Core kubectl Commands</h2>
+                    
+                    <div id="k8s-get-info">
+                        <h3>Get Information</h3>
+                        
+                        <div class="command-block">
+                            <h4>kubectl get</h4>
+                            <p>List resources</p>
+                            <pre><code class="language-bash"># List all pods in the current namespace
+kubectl get pods
+
+# List pods with more details
+kubectl get pods -o wide
+
+# List pods in all namespaces
+kubectl get pods --all-namespaces
+
+# Get specific pod details in YAML format
+kubectl get pod my-pod -o yaml
+
+# List multiple resource types
+kubectl get pods,services,deployments</code></pre>
+                        </div>
+                        
+                        <div class="command-block">
+                            <h4>kubectl describe</h4>
+                            <p>Show detailed information about resources</p>
+                            <pre><code class="language-bash"># Get detailed info about a specific pod
+kubectl describe pod my-pod
+
+# Get details about all services in a namespace
+kubectl describe services</code></pre>
+                        </div>
+                        
+                        <div class="command-block">
+                            <h4>kubectl logs</h4>
+                            <p>Print container logs</p>
+                            <pre><code class="language-bash"># Get logs from a pod
+kubectl logs my-pod
+
+# Get logs from a specific container in a multi-container pod
+kubectl logs my-pod -c my-container
+
+# Stream logs in real-time
+kubectl logs -f my-pod</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div id="k8s-create-modify">
+                        <h3>Create and Modify Resources</h3>
+                        
+                        <div class="command-block">
+                            <h4>kubectl create</h4>
+                            <p>Create resources from files or directly</p>
+                            <pre><code class="language-bash"># Create a deployment
+kubectl create deployment nginx-deploy --image=nginx
+
+# Create a namespace
+kubectl create namespace test-namespace</code></pre>
+                        </div>
+                        
+                        <div class="command-block">
+                            <h4>kubectl apply</h4>
+                            <p>Apply configuration to resources</p>
+                            <pre><code class="language-bash"># Create or update resources defined in a file
+kubectl apply -f deployment.yaml
+
+# Apply configurations from multiple files
+kubectl apply -f config1.yaml -f config2.yaml
+
+# Apply configurations from a directory
+kubectl apply -f ./configs/</code></pre>
+                        </div>
+                        
+                        <div class="command-block">
+                            <h4>kubectl delete</h4>
+                            <p>Remove resources</p>
+                            <pre><code class="language-bash"># Delete a pod
+kubectl delete pod my-pod
+
+# Delete all pods in a namespace
+kubectl delete pods --all
+
+# Delete resources using a configuration file
+kubectl delete -f deployment.yaml
+
+# Delete a namespace and all its resources
+kubectl delete namespace test-namespace</code></pre>
+                        </div>
+                        
+                        <div class="command-block">
+                            <h4>kubectl edit</h4>
+                            <p>Edit resources directly</p>
+                            <pre><code class="language-bash"># Edit a deployment
+kubectl edit deployment my-deployment
+
+# Edit a service
+kubectl edit service my-service</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div id="k8s-pod-management">
+                        <h3>Pod Management</h3>
+                        
+                        <div class="command-block">
+                            <h4>kubectl exec</h4>
+                            <p>Execute commands in containers</p>
+                            <pre><code class="language-bash"># Run a command in a pod
+kubectl exec my-pod -- ls -l
+
+# Get an interactive shell in a pod
+kubectl exec -it my-pod -- /bin/bash
+
+# Run a command in a specific container of a multi-container pod
+kubectl exec -it my-pod -c my-container -- /bin/bash</code></pre>
+                        </div>
+                        
+                        <div class="command-block">
+                            <h4>kubectl port-forward</h4>
+                            <p>Forward local ports to pods</p>
+                            <pre><code class="language-bash"># Forward local port 8080 to port 80 in the pod
+kubectl port-forward pod/my-pod 8080:80
+
+# Forward to a service
+kubectl port-forward svc/my-service 8080:80</code></pre>
+                        </div>
+                    </div>
+                </section>
+                
+                <section id="k8s-config">
+                    <h2>Configuration and Context Management</h2>
+                    
+                    <div class="command-block">
+                        <h4>kubectl config</h4>
+                        <p>Manage kubeconfig files</p>
+                        <pre><code class="language-bash"># Show current context
+kubectl config current-context
+
+# List all available contexts
+kubectl config get-contexts
+
+# Switch to a different context
+kubectl config use-context my-context
+
+# Set the default namespace for the current context
+kubectl config set-context --current --namespace=test-namespace</code></pre>
+                    </div>
+                </section>
+                
+                <section id="k8s-deployment">
+                    <h2>Deployment Management</h2>
+                    
+                    <div class="command-block">
+                        <h4>kubectl rollout</h4>
+                        <p>Manage rollouts</p>
+                        <pre><code class="language-bash"># Check rollout status
+kubectl rollout status deployment/my-deployment
+
+# View rollout history
+kubectl rollout history deployment/my-deployment
+
+# Rollback to previous version
+kubectl rollout undo deployment/my-deployment
+
+# Rollback to specific revision
+kubectl rollout undo deployment/my-deployment --to-revision=2
+
+# Restart a deployment
+kubectl rollout restart deployment/my-deployment</code></pre>
+                    </div>
+                    
+                    <div class="command-block">
+                        <h4>kubectl scale</h4>
+                        <p>Scale deployments, replica sets, etc.</p>
+                        <pre><code class="language-bash"># Scale a deployment to 5 replicas
+kubectl scale deployment/my-deployment --replicas=5
+
+# Scale multiple deployments
+kubectl scale deployment/deployment1 deployment/deployment2 --replicas=3</code></pre>
+                    </div>
+                </section>
+                
+                <section id="k8s-advanced">
+                    <h2>Advanced Operations</h2>
+                    
+                    <div class="command-block">
+                        <h4>kubectl explain</h4>
+                        <p>Documentation for resources</p>
+                        <pre><code class="language-bash"># Get documentation for pods
+kubectl explain pods
+
+# Get documentation for specific field
+kubectl explain pods.spec.containers</code></pre>
+                    </div>
+                    
+                    <div class="command-block">
+                        <h4>kubectl patch</h4>
+                        <p>Update specific fields</p>
+                        <pre><code class="language-bash"># Update a container image
+kubectl patch deployment my-deployment -p '{"spec":{"template":{"spec":{"containers":[{"name":"my-container","image":"new-image:tag"}]}}}}'</code></pre>
+                    </div>
+                    
+                    <div class="command-block">
+                        <h4>kubectl top</h4>
+                        <p>Show resource usage</p>
+                        <pre><code class="language-bash"># Show CPU/memory usage for pods
+kubectl top pods
+
+# Show CPU/memory usage for nodes
+kubectl top nodes</code></pre>
+                    </div>
+                </section>
+                
+                <section id="k8s-use-cases">
+                    <h2>Common Use Cases</h2>
+                    
+                    <div class="use-case">
+                        <h3>Deployment Workflows</h3>
+                        <ol>
+                            <li>
+                                <strong>Create a new application deployment</strong>:
+                                <pre><code class="language-bash">kubectl create deployment my-app --image=my-image:v1
+kubectl expose deployment my-app --port=80 --type=LoadBalancer</code></pre>
+                            </li>
+                            <li>
+                                <strong>Update an application</strong>:
+                                <pre><code class="language-bash">kubectl set image deployment/my-app my-app=my-image:v2
+kubectl rollout status deployment/my-app</code></pre>
+                            </li>
+                            <li>
+                                <strong>Debug application issues</strong>:
+                                <pre><code class="language-bash">kubectl logs deployment/my-app
+kubectl describe pod my-app-pod-name
+kubectl exec -it my-app-pod-name -- /bin/bash</code></pre>
+                            </li>
+                        </ol>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h3>Cluster Management</h3>
+                        <ol>
+                            <li>
+                                <strong>Node maintenance</strong> (drain a node for maintenance):
+                                <pre><code class="language-bash">kubectl drain my-node --ignore-daemonsets
+# After maintenance:
+kubectl uncordon my-node</code></pre>
+                            </li>
+                            <li>
+                                <strong>Namespace isolation</strong> (create resources in isolated namespaces):
+                                <pre><code class="language-bash">kubectl create namespace project-a
+kubectl -n project-a apply -f deployment.yaml</code></pre>
+                            </li>
+                            <li>
+                                <strong>Resource monitoring</strong>:
+                                <pre><code class="language-bash">kubectl top nodes
+kubectl top pods --all-namespaces</code></pre>
+                            </li>
+                        </ol>
+                    </div>
+                    
+                    <div class="use-case">
+                        <h3>Troubleshooting</h3>
+                        <ol>
+                            <li>
+                                <strong>Check pod health</strong>:
+                                <pre><code class="language-bash">kubectl get pods
+kubectl describe pod problematic-pod
+kubectl logs problematic-pod</code></pre>
+                            </li>
+                            <li>
+                                <strong>Verify networking</strong>:
+                                <pre><code class="language-bash">kubectl exec -it networking-test -- curl service-name
+kubectl port-forward pod/my-pod 8080:80
+# In another terminal: curl localhost:8080</code></pre>
+                            </li>
+                            <li>
+                                <strong>Check cluster events</strong>:
+                                <pre><code class="language-bash">kubectl get events --sort-by='.lastTimestamp'</code></pre>
+                            </li>
+                        </ol>
+                    </div>
+                </section>
+                
+                <section id="k8s-simulator">
+                    <h2>Creating a Kubernetes Simulator</h2>
+                    
+                    <div class="simulator-option">
+                        <h3>1. Minikube - Local Kubernetes Cluster</h3>
+                        <p>Minikube is one of the simplest ways to run a full Kubernetes cluster locally for development and learning.</p>
+                        <pre><code class="language-bash"># Install Minikube
+# On macOS:
+brew install minikube
+
+# On Linux:
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# Start a cluster
+minikube start
+
+# Check status
+minikube status</code></pre>
+                        <p><strong>Use case:</strong> Great for developers who want to test deployments on a real but isolated Kubernetes environment.</p>
+                    </div>
+                    
+                    <div class="simulator-option">
+                        <h3>2. Kind (Kubernetes IN Docker)</h3>
+                        <p>Kind runs Kubernetes clusters using Docker containers as nodes, making it lightweight and easy to set up.</p>
+                        <pre><code class="language-bash"># Install Kind
+# On macOS:
+brew install kind
+
+# On Linux:
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
+chmod +x ./kind
+sudo mv ./kind /usr/local/bin/
+
+# Create a cluster
+kind create cluster --name my-simulator
+
+# Use a config file for multi-node clusters
+kind create cluster --config=kind-config.yaml</code></pre>
+                        <p><strong>Sample kind-config.yaml for a multi-node cluster:</strong></p>
+                        <pre><code class="language-yaml">kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+- role: worker
+- role: worker</code></pre>
+                        <p><strong>Use case:</strong> Great for CI/CD testing and multi-node simulations without heavy resource requirements.</p>
+                    </div>
+                    
+                    <div class="simulator-option">
+                        <h3>3. K3d - Lightweight Kubernetes</h3>
+                        <p>K3d is a wrapper to run k3s (a lightweight Kubernetes distribution) in Docker.</p>
+                        <pre><code class="language-bash"># Install K3d
+curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+
+# Create a cluster
+k3d cluster create my-simulator
+
+# Create multi-node cluster
+k3d cluster create my-simulator --agents 3</code></pre>
+                        <p><strong>Use case:</strong> When you want something even lighter than Minikube but with most Kubernetes features.</p>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- Docker Content -->
+            <div id="docker" class="content">
+                <h1>Docker Reference Guide</h1>
+                <div class="toc">
+                    <h3>Table of Contents</h3>
+                    <ul>
+                        <li><a href="#docker-concepts">Basic Docker Concepts</a></li>
+                        <li><a href="#docker-cli">Docker CLI Commands</a>
+                            <ul>
+                                <li><a href="#docker-image">Image Management</a></li>
+                                <li><a href="#docker-container">Container Management</a></li>
+                                <li><a href="#docker-network">Network Management</a></li>
+                                <li><a href="#docker-volume">Volume Management</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#docker-compose">Docker Compose Commands</a></li>
+                        <li><a href="#docker-file">Dockerfile Reference</a></li>
+                        <li><a href="#docker-security">Docker Security Best Practices</a></li>
+                    </ul>
+                </div>
+                
+                <section id="docker-concepts">
+                    <h2>Basic Docker Concepts</h2>
+                    <p>Docker is a platform that enables developers to build, package, and run applications in containers. Key components include:</p>
+                    <ol>
+                        <li><strong>Images</strong> - Read-only templates used to create containers</li>
+                        <li><strong>Containers</strong> - Running instances of Docker images</li>
+                        <li><strong>Dockerfile</strong> - Text file with instructions to build an image</li>
+                        <li><strong>Registry</strong> - Storage for Docker images (e.g., Docker Hub)</li>
+                        <li><strong>Docker Compose</strong> - Tool for defining multi-container applications</li>
+                        <li><strong>Docker Engine</strong> - Core software that runs and manages containers</li>
+                    </ol>
+                </section>
+                
+                <section id="docker-cli">
+                    <h2>Docker CLI Commands</h2>
+                    
+                    <div id="docker-image">
+                        <h3>Image Management</h3>
+                        <pre><code class="language-bash"># List all images
+docker images
+docker image ls
+
+# Pull an image from a registry
+docker pull image_name:tag
+
+# Build an image from a Dockerfile
+docker build -t image_name:tag .
+
+# Build with specific Dockerfile
+docker build -t image_name:tag -f Dockerfile.prod .
+
+# Tag an image
+docker tag source_image:tag target_image:tag
+
+# Remove an image
+docker rmi image_name:tag
+docker image rm image_name:tag
+
+# Remove all unused images
+docker image prune
+
+# Remove all images not used by containers
+docker image prune -a</code></pre>
+                    </div>
+                    
+                    <div id="docker-container">
+                        <h3>Container Management</h3>
+                        <pre><code class="language-bash"># Run a container
+docker run image_name:tag
+
+# Run with a custom name
+docker run --name container_name image_name:tag
+
+# Run in detached (background) mode
+docker run -d image_name:tag
+
+# Run interactively with terminal
+docker run -it image_name:tag /bin/bash
+
+# Run with port mapping
+docker run -p host_port:container_port image_name:tag
+
+# Run with volume mount
+docker run -v host_path:container_path image_name:tag
+
+# List running containers
+docker ps
+
+# List all containers (including stopped)
+docker ps -a
+
+# Start a stopped container
+docker start container_name
+
+# Stop a running container
+docker stop container_name</code></pre>
+                    </div>
+                    
+                    <div id="docker-network">
+                        <h3>Network Management</h3>
+                        <pre><code class="language-bash"># List networks
+docker network ls
+
+# Create a network
+docker network create network_name
+
+# Create a network with specific subnet
+docker network create --subnet=192.168.0.0/16 network_name
+
+# Inspect a network
+docker network inspect network_name
+
+# Connect a container to a network
+docker network connect network_name container_name
+
+# Disconnect a container from a network
+docker network disconnect network_name container_name</code></pre>
+                    </div>
+                    
+                    <div id="docker-volume">
+                        <h3>Volume Management</h3>
+                        <pre><code class="language-bash"># List volumes
+docker volume ls
+
+# Create a volume
+docker volume create volume_name
+
+# Inspect a volume
+docker volume inspect volume_name
+
+# Remove a volume
+docker volume rm volume_name
+
+# Remove all unused volumes
+docker volume prune</code></pre>
+                    </div>
+                </section>
+                
+                <section id="docker-compose">
+                    <h2>Docker Compose Commands</h2>
+                    <pre><code class="language-bash"># Start services defined in docker-compose.yml
+docker-compose up
+
+# Start in detached mode
+docker-compose up -d
+
+# Stop services
+docker-compose down
+
+# Stop services and remove volumes
+docker-compose down -v
+
+# List running containers
+docker-compose ps
+
+# View container logs
+docker-compose logs
+
+# Execute a command in a service container
+docker-compose exec service_name command</code></pre>
+                </section>
+                
+                <section id="docker-file">
+                    <h2>Dockerfile Reference</h2>
+                    <pre><code class="language-dockerfile"># Use an existing image as a base
+FROM base_image:tag
+
+# Set the working directory
+WORKDIR /path/to/workdir
+
+# Copy files from host to container
+COPY source destination
+
+# Run commands
+RUN command
+
+# Set environment variables
+ENV key=value
+
+# Document ports the container listens on
+EXPOSE port
+
+# Set default command to run
+CMD ["executable", "param1", "param2"]
+
+# Set entrypoint command
+ENTRYPOINT ["executable", "param1", "param2"]</code></pre>
+                </section>
+            </div>
+            
+            <!-- Ansible Content -->
+            <div id="ansible" class="content">
+                <h1>Ansible Reference Guide</h1>
+                <p>This section will cover the essential Ansible commands, playbooks, and best practices.</p>
+                <p>Check back later for more detailed content.</p>
+            </div>
+            
+            <!-- Terraform Content -->
+            <div id="terraform" class="content">
+                <h1>Terraform Reference Guide</h1>
+                <p>This section will cover the essential Terraform commands, configurations, and best practices.</p>
+                <p>Check back later for more detailed content.</p>
+            </div>
+            
+            <!-- AWS Content -->
+            <div id="aws" class="content">
+                <h1>AWS Reference Guide</h1>
+                <p>This section will cover essential AWS services, CLI commands, and best practices.</p>
+                <p>Check back later for more detailed content.</p>
+            </div>
+            
+            <!-- Azure Content -->
+            <div id="azure" class="content">
+                <h1>Azure Reference Guide</h1>
+                <p>This section will cover essential Azure services, CLI commands, and best practices.</p>
+                <p>Check back later for more detailed content.</p>
+            </div>
+            
+            <!-- GCP Content -->
+            <div id="gcp" class="content">
+                <h1>GCP Reference Guide</h1>
+                <p>This section will cover essential Google Cloud Platform services, CLI commands, and best practices.</p>
+                <p>Check back later for more detailed content.</p>
+            </div>
+            
+            <!-- Git & GitHub Content -->
+            <div id="git" class="content">
+                <h1>Git & GitHub Reference Guide</h1>
+                <p>This section will cover essential Git commands, GitHub features, and best practices.</p>
+                <p>Check back later for more detailed content.</p>
+            </div>
+            
+            <!-- Jenkins Content -->
+            <div id="jenkins" class="content">
+                <h1>Jenkins Reference Guide</h1>
+                <p>This section will cover essential Jenkins pipelines, configurations, and best practices.</p>
+                <p>Check back later for more detailed content.</p>
+            </div>
+            
+            <!-- Linux Content -->
+            <div id="linux" class="content">
+                <h1>Linux Reference Guide</h1>
+                <p>This section will cover essential Linux commands, file system operations, and system administration tasks.</p>
+                <p>Check back later for more detailed content.</p>
+            </div>
+            
+            <!-- Python Content -->
+            <div id="python" class="content">
+                <h1>Python Reference Guide</h1>
+                <p>This section will cover essential Python syntax, libraries, and best practices for DevOps and automation.</p>
+                <p>Check back later for more detailed content.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
