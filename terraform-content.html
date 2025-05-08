@@ -1,0 +1,608 @@
+<!-- Terraform Content -->
+<div id="terraform" class="content">
+    <h1>Terraform Reference Guide</h1>
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#terraform-basics">Terraform Basics</a></li>
+            <li><a href="#terraform-configuration">Configuration</a>
+                <ul>
+                    <li><a href="#terraform-providers">Providers</a></li>
+                    <li><a href="#terraform-resources">Resources</a></li>
+                    <li><a href="#terraform-variables">Variables and Outputs</a></li>
+                </ul>
+            </li>
+            <li><a href="#terraform-state">State Management</a></li>
+            <li><a href="#terraform-modules">Modules</a></li>
+            <li><a href="#terraform-workflow">Workflow Commands</a></li>
+            <li><a href="#terraform-best-practices">Best Practices</a></li>
+        </ul>
+    </div>
+    
+    <section id="terraform-basics">
+        <h2>Terraform Basics</h2>
+        <p>Terraform is an infrastructure as code (IaC) tool that allows you to build, change, and version infrastructure safely and efficiently. It can manage popular service providers as well as custom in-house solutions.</p>
+        
+        <div class="command-block">
+            <h4>Installation</h4>
+            <pre><code class="language-bash"># Install Terraform on Linux
+curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+sudo apt update && sudo apt install terraform
+
+# Install Terraform on macOS
+brew tap hashicorp/tap
+brew install hashicorp/tap/terraform
+
+# Install Terraform on Windows with Chocolatey
+choco install terraform
+
+# Verify installation
+terraform version</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Basic Structure</h4>
+            <p>Terraform configurations are written in the HashiCorp Configuration Language (HCL) in files with the <code>.tf</code> extension.</p>
+            <pre><code class="language-hcl"># main.tf - A simple example
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "us-west-2"
+}
+
+resource "aws_instance" "example" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+  
+  tags = {
+    Name = "example-instance"
+  }
+}</code></pre>
+        </div>
+    </section>
+    
+    <section id="terraform-configuration">
+        <h2>Configuration</h2>
+        
+        <div id="terraform-providers">
+            <h3>Providers</h3>
+            <p>Providers are plugins that interface with services like AWS, Azure, GCP, etc. They expose resources that can be managed with Terraform.</p>
+            
+            <div class="command-block">
+                <h4>AWS Provider</h4>
+                <pre><code class="language-hcl">provider "aws" {
+  region     = "us-west-2"
+  access_key = "my-access-key"
+  secret_key = "my-secret-key"
+  
+  # Or use profiles
+  # profile = "my-profile"
+}
+
+# Using environment variables (best practice)
+# export AWS_ACCESS_KEY_ID="my-access-key"
+# export AWS_SECRET_ACCESS_KEY="my-secret-key"
+# export AWS_DEFAULT_REGION="us-west-2"</code></pre>
+            </div>
+            
+            <div class="command-block">
+                <h4>Azure Provider</h4>
+                <pre><code class="language-hcl">provider "azurerm" {
+  features {}
+  
+  subscription_id = "your-subscription-id"
+  tenant_id       = "your-tenant-id"
+  client_id       = "your-client-id"
+  client_secret   = "your-client-secret"
+}
+
+# Using environment variables (best practice)
+# export ARM_SUBSCRIPTION_ID="your-subscription-id"
+# export ARM_TENANT_ID="your-tenant-id"
+# export ARM_CLIENT_ID="your-client-id"
+# export ARM_CLIENT_SECRET="your-client-secret"</code></pre>
+            </div>
+            
+            <div class="command-block">
+                <h4>Google Cloud Provider</h4>
+                <pre><code class="language-hcl">provider "google" {
+  project     = "your-project-id"
+  region      = "us-central1"
+  zone        = "us-central1-a"
+  credentials = file("path/to/account.json")
+}
+
+# Using environment variables (best practice)
+# export GOOGLE_APPLICATION_CREDENTIALS="path/to/account.json"
+# export GOOGLE_PROJECT="your-project-id"</code></pre>
+            </div>
+        </div>
+        
+        <div id="terraform-resources">
+            <h3>Resources</h3>
+            <p>Resources are the most important element in the Terraform language. Each resource block describes one or more infrastructure objects.</p>
+            
+            <div class="command-block">
+                <h4>Resource Syntax</h4>
+                <pre><code class="language-hcl">resource "type" "name" {
+  argument1 = value1
+  argument2 = value2
+  
+  nested_block {
+    option1 = value1
+  }
+}</code></pre>
+            </div>
+            
+            <div class="command-block">
+                <h4>Common AWS Resources</h4>
+                <pre><code class="language-hcl"># EC2 Instance
+resource "aws_instance" "web" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+  key_name      = aws_key_pair.deployer.key_name
+  
+  vpc_security_group_ids = [aws_security_group.web.id]
+  subnet_id              = aws_subnet.public.id
+  
+  tags = {
+    Name = "WebServer"
+  }
+}
+
+# VPC
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  
+  tags = {
+    Name = "MainVPC"
+  }
+}
+
+# S3 Bucket
+resource "aws_s3_bucket" "files" {
+  bucket = "my-app-files"
+  
+  tags = {
+    Environment = "Production"
+  }
+}</code></pre>
+            </div>
+            
+            <div class="command-block">
+                <h4>Dependencies</h4>
+                <p>Terraform automatically handles dependency order based on references within your configuration.</p>
+                <pre><code class="language-hcl"># Implicit dependency - Terraform recognizes this
+resource "aws_instance" "web" {
+  subnet_id = aws_subnet.main.id  # This creates an implicit dependency
+}
+
+# Explicit dependency - Use depends_on for hidden dependencies
+resource "aws_instance" "web" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+  
+  depends_on = [
+    aws_s3_bucket.app_files,
+    aws_dynamodb_table.app_data
+  ]
+}</code></pre>
+            </div>
+        </div>
+        
+        <div id="terraform-variables">
+            <h3>Variables and Outputs</h3>
+            <p>Variables allow parameterization of configurations. Outputs export data that can be used elsewhere or shown after applying.</p>
+            
+            <div class="command-block">
+                <h4>Input Variables</h4>
+                <pre><code class="language-hcl"># variables.tf
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "t2.micro"
+}
+
+variable "vpc_cidr" {
+  description = "CIDR for the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "environment" {
+  description = "Deployment environment"
+  type        = string
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "Environment must be dev, staging, or prod."
+  }
+}
+
+# Using variables
+resource "aws_instance" "web" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = var.instance_type
+  
+  tags = {
+    Environment = var.environment
+  }
+}</code></pre>
+            </div>
+            
+            <div class="command-block">
+                <h4>Output Values</h4>
+                <pre><code class="language-hcl"># outputs.tf
+output "instance_ip" {
+  description = "Public IP of the web server"
+  value       = aws_instance.web.public_ip
+}
+
+output "s3_bucket_name" {
+  description = "Name of the S3 bucket"
+  value       = aws_s3_bucket.files.bucket
+  sensitive   = false
+}
+
+# Accessing output from the command line
+# terraform output instance_ip
+# terraform output -json</code></pre>
+            </div>
+            
+            <div class="command-block">
+                <h4>Local Values</h4>
+                <pre><code class="language-hcl">locals {
+  common_tags = {
+    Environment = var.environment
+    Project     = var.project_name
+    Owner       = "DevOps Team"
+    Terraform   = "true"
+  }
+  
+  subnet_ids = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
+}
+
+resource "aws_instance" "app" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = var.instance_type
+  
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "AppServer"
+    }
+  )
+}</code></pre>
+            </div>
+        </div>
+    </section>
+    
+    <section id="terraform-state">
+        <h2>State Management</h2>
+        <p>Terraform state is a critical component that maps real-world resources to your configuration, keeps track of metadata, and improves performance.</p>
+        
+        <div class="command-block">
+            <h4>Local State</h4>
+            <pre><code class="language-bash"># State is stored locally by default in terraform.tfstate
+
+# Backup local state before operations
+cp terraform.tfstate terraform.tfstate.backup
+
+# Don't edit state files directly - use commands
+terraform state list
+terraform state show aws_instance.web</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Remote State</h4>
+            <pre><code class="language-hcl"># Remote state configuration in terraform block
+terraform {
+  backend "s3" {
+    bucket         = "my-terraform-state"
+    key            = "prod/terraform.tfstate"
+    region         = "us-west-2"
+    encrypt        = true
+    dynamodb_table = "terraform-locks"
+  }
+}
+
+# Azure Remote Backend
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "terraform-state-rg"
+    storage_account_name = "terraformstate"
+    container_name       = "tfstate"
+    key                  = "prod.terraform.tfstate"
+  }
+}</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>State Commands</h4>
+            <pre><code class="language-bash"># List resources in state
+terraform state list
+
+# Show details of a specific resource
+terraform state show aws_instance.web
+
+# Move a resource to a different name
+terraform state mv aws_instance.web aws_instance.app
+
+# Remove a resource from state (without destroying it)
+terraform state rm aws_instance.db
+
+# Import existing infrastructure into state
+terraform import aws_instance.imported i-1234567890abcdef0
+
+# Pull remote state to a local file
+terraform state pull > terraform.tfstate.backup
+
+# Push local state to remote backend
+terraform state push terraform.tfstate.backup</code></pre>
+        </div>
+    </section>
+    
+    <section id="terraform-modules">
+        <h2>Modules</h2>
+        <p>Modules are containers for multiple resources used together. They help organize and encapsulate infrastructure components for reuse.</p>
+        
+        <div class="command-block">
+            <h4>Module Structure</h4>
+            <pre><code class="language-bash">modules/
+└── vpc/
+    ├── main.tf          # Main resource definitions
+    ├── variables.tf     # Input variables
+    ├── outputs.tf       # Output values
+    └── README.md        # Documentation</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Creating and Using Modules</h4>
+            <pre><code class="language-hcl"># Defining a module in modules/vpc/main.tf
+resource "aws_vpc" "this" {
+  cidr_block = var.vpc_cidr
+  
+  tags = var.tags
+}
+
+resource "aws_subnet" "public" {
+  count = length(var.public_subnets)
+  
+  vpc_id     = aws_vpc.this.id
+  cidr_block = var.public_subnets[count.index]
+  
+  tags = merge(
+    var.tags,
+    {
+      Name = "PublicSubnet-${count.index}"
+    }
+  )
+}
+
+# Modules/vpc/variables.tf
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC"
+  type        = string
+}
+
+variable "public_subnets" {
+  description = "List of public subnet CIDR blocks"
+  type        = list(string)
+  default     = []
+}
+
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
+  default     = {}
+}
+
+# modules/vpc/outputs.tf
+output "vpc_id" {
+  description = "ID of the VPC"
+  value       = aws_vpc.this.id
+}
+
+output "public_subnet_ids" {
+  description = "IDs of the public subnets"
+  value       = aws_subnet.public[*].id
+}
+
+# Using the module in main.tf
+module "vpc" {
+  source = "./modules/vpc"
+  
+  vpc_cidr       = "10.0.0.0/16"
+  public_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+  
+  tags = {
+    Environment = "Production"
+    Project     = "MyApp"
+  }
+}
+
+# Accessing module outputs
+resource "aws_instance" "web" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+  subnet_id     = module.vpc.public_subnet_ids[0]
+}</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Using Registry Modules</h4>
+            <pre><code class="language-hcl"># Using the official AWS VPC module
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "3.14.0"
+  
+  name = "my-vpc"
+  cidr = "10.0.0.0/16"
+  
+  azs             = ["us-west-2a", "us-west-2b", "us-west-2c"]
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+  
+  enable_nat_gateway = true
+  single_nat_gateway = true
+  
+  tags = {
+    Environment = "Production"
+    Terraform   = "true"
+  }
+}</code></pre>
+        </div>
+    </section>
+    
+    <section id="terraform-workflow">
+        <h2>Workflow Commands</h2>
+        <p>Terraform follows a workflow of initializing, planning, applying, and destroying infrastructure.</p>
+        
+        <div class="command-block">
+            <h4>Initialization</h4>
+            <pre><code class="language-bash"># Initialize a new or existing Terraform configuration
+terraform init
+
+# Initialize and upgrade modules and plugins
+terraform init -upgrade
+
+# Initialize with a specific backend configuration
+terraform init -backend-config=prod.backend.hcl
+
+# Initialize with reconfiguration
+terraform init -reconfigure</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Planning</h4>
+            <pre><code class="language-bash"># Create an execution plan
+terraform plan
+
+# Save the plan to a file
+terraform plan -out=tfplan
+
+# Plan with variable values
+terraform plan -var="instance_type=t2.small"
+
+# Plan with a variable file
+terraform plan -var-file=prod.tfvars</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Applying</h4>
+            <pre><code class="language-bash"># Apply the changes required to reach the desired state
+terraform apply
+
+# Auto-approve apply without confirmation prompt
+terraform apply -auto-approve
+
+# Apply a saved plan
+terraform apply tfplan
+
+# Apply with variable values
+terraform apply -var="instance_type=t2.small"</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Destroying</h4>
+            <pre><code class="language-bash"># Destroy all resources managed by Terraform
+terraform destroy
+
+# Auto-approve destroy without confirmation prompt
+terraform destroy -auto-approve
+
+# Destroy a specific resource
+terraform destroy -target=aws_instance.web
+
+# Plan destruction
+terraform plan -destroy</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Other Useful Commands</h4>
+            <pre><code class="language-bash"># Validate configuration syntax
+terraform validate
+
+# Format configuration files
+terraform fmt
+
+# Show current state
+terraform show
+
+# Refresh state with real-world resources
+terraform refresh
+
+# Generate dependency graph (requires graphviz)
+terraform graph | dot -Tpng > graph.png
+
+# Use workspaces for different environments
+terraform workspace new dev
+terraform workspace select prod
+terraform workspace list</code></pre>
+        </div>
+    </section>
+    
+    <section id="terraform-best-practices">
+        <h2>Best Practices</h2>
+        
+        <div class="command-block">
+            <h4>Project Structure</h4>
+            <pre><code class="language-bash">project/
+├── main.tf          # Main configuration
+├── variables.tf     # Variable declarations
+├── outputs.tf       # Output declarations
+├── providers.tf     # Provider configuration
+├── terraform.tfvars # Variable values (gitignore this for secrets)
+├── backend.tf       # Backend configuration
+├── modules/         # Local modules
+└── environments/    # Environment-specific configurations
+    ├── dev/
+    ├── staging/
+    └── prod/</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>State Management</h4>
+            <ul>
+                <li>Always use remote state for team environments</li>
+                <li>Enable versioning on state storage (S3 bucket, Azure blob)</li>
+                <li>Use state locking (DynamoDB table, Azure blob lease)</li>
+                <li>Never commit <code>.tfstate</code> files to version control</li>
+                <li>Separate state by environment or component</li>
+            </ul>
+        </div>
+        
+        <div class="command-block">
+            <h4>Security Practices</h4>
+            <ul>
+                <li>Never hardcode sensitive credentials in configuration files</li>
+                <li>Use environment variables or secure vaults for secrets</li>
+                <li>Rotate credentials regularly</li>
+                <li>Set restrictive permissions on state files and storage</li>
+                <li>Use <code>sensitive = true</code> for sensitive outputs</li>
+                <li>Implement least privilege principles for Terraform IAM roles</li>
+            </ul>
+        </div>
+        
+        <div class="command-block">
+            <h4>Development Workflow</h4>
+            <ul>
+                <li>Use version control for all Terraform code</li>
+                <li>Implement CI/CD pipelines for Terraform</li>
+                <li>Always run <code>terraform plan</code> before <code>terraform apply</code></li>
+                <li>Use workspaces or separate configurations for different environments</li>
+                <li>Run <code>terraform fmt</code> and <code>terraform validate</code> before committing code</li>
+                <li>Use modules for reusable components</li>
+                <li>Tag all resources consistently</li>
+                <li>Document your code with meaningful comments and README files</li>
+            </ul>
+        </div>
+    </section>
+</div>
