@@ -1,0 +1,361 @@
+<!-- Ansible Content -->
+<div id="ansible" class="content">
+    <h1>Ansible Reference Guide</h1>
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#ansible-basics">Ansible Basics</a></li>
+            <li><a href="#ansible-playbooks">Playbooks</a>
+                <ul>
+                    <li><a href="#playbook-structure">Playbook Structure</a></li>
+                    <li><a href="#playbook-modules">Common Modules</a></li>
+                </ul>
+            </li>
+            <li><a href="#ansible-roles">Roles</a></li>
+            <li><a href="#ansible-inventory">Inventory Management</a></li>
+            <li><a href="#ansible-variables">Variables and Facts</a></li>
+            <li><a href="#ansible-best-practices">Best Practices</a></li>
+        </ul>
+    </div>
+    
+    <section id="ansible-basics">
+        <h2>Ansible Basics</h2>
+        <p>Ansible is an open-source automation tool that simplifies configuration management, application deployment, and task automation. It uses a declarative language to describe system configurations.</p>
+        
+        <div class="command-block">
+            <h4>Installation</h4>
+            <pre><code class="language-bash"># Install Ansible on Ubuntu/Debian
+sudo apt update
+sudo apt install ansible
+
+# Install Ansible on CentOS/RHEL
+sudo yum install ansible
+
+# Install Ansible on macOS
+brew install ansible
+
+# Check version
+ansible --version</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Basic Commands</h4>
+            <pre><code class="language-bash"># Run ad-hoc command on all hosts
+ansible all -m ping
+
+# Run ad-hoc command on specific hosts
+ansible webservers -m shell -a "uptime"
+
+# Run ad-hoc command with sudo
+ansible all -m apt -a "name=nginx state=present" --become
+
+# Check syntax of a playbook
+ansible-playbook playbook.yml --syntax-check
+
+# Run playbook
+ansible-playbook playbook.yml
+
+# Run playbook with variables
+ansible-playbook playbook.yml -e "variable_name=value"</code></pre>
+        </div>
+    </section>
+    
+    <section id="ansible-playbooks">
+        <h2>Playbooks</h2>
+        <p>Playbooks are Ansible's configuration, deployment, and orchestration language. They express configurations, deployment steps, and orchestrate multi-machine deployments in a YAML format.</p>
+        
+        <div id="playbook-structure">
+            <h3>Playbook Structure</h3>
+            <pre><code class="language-yaml">---
+- name: My First Playbook
+  hosts: webservers
+  become: true
+  vars:
+    http_port: 80
+    max_clients: 200
+  
+  tasks:
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+    
+    - name: Start nginx service
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+    
+    - name: Create a directory
+      file:
+        path: /var/www/html/myapp
+        state: directory
+        mode: '0755'
+    
+    - name: Copy configuration
+      template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/sites-available/default
+      notify:
+        - Restart nginx
+  
+  handlers:
+    - name: Restart nginx
+      service:
+        name: nginx
+        state: restarted</code></pre>
+        </div>
+        
+        <div id="playbook-modules">
+            <h3>Common Modules</h3>
+            
+            <div class="command-block">
+                <h4>File Management</h4>
+                <pre><code class="language-yaml"># Create a directory
+- name: Create directory
+  file:
+    path: /opt/application
+    state: directory
+    mode: '0755'
+    owner: app_user
+    group: app_group
+
+# Copy a file
+- name: Copy configuration file
+  copy:
+    src: files/app.conf
+    dest: /etc/app/app.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+# Template a file
+- name: Apply configuration template
+  template:
+    src: templates/app.conf.j2
+    dest: /etc/app/app.conf
+    
+# Delete a file
+- name: Remove temporary files
+  file:
+    path: /tmp/app-cache
+    state: absent</code></pre>
+            </div>
+            
+            <div class="command-block">
+                <h4>Package Management</h4>
+                <pre><code class="language-yaml"># Install packages (Ubuntu/Debian)
+- name: Install required packages
+  apt:
+    name:
+      - nginx
+      - postgresql
+      - python3-pip
+    state: present
+    update_cache: yes
+
+# Install packages (RHEL/CentOS)
+- name: Install required packages
+  yum:
+    name:
+      - httpd
+      - mariadb-server
+      - python3
+    state: present
+    
+# Install Python packages
+- name: Install Python requirements
+  pip:
+    name:
+      - django
+      - requests
+    state: present</code></pre>
+            </div>
+            
+            <div class="command-block">
+                <h4>Service Management</h4>
+                <pre><code class="language-yaml"># Start and enable a service
+- name: Ensure service is running
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+    
+# Restart a service
+- name: Restart application service
+  service:
+    name: my_app
+    state: restarted
+    
+# Reload a service
+- name: Reload configuration
+  service:
+    name: nginx
+    state: reloaded</code></pre>
+            </div>
+        </div>
+    </section>
+    
+    <section id="ansible-roles">
+        <h2>Roles</h2>
+        <p>Ansible roles are a way to organize playbooks and related files to facilitate sharing and reuse of content.</p>
+        
+        <div class="command-block">
+            <h4>Role Structure</h4>
+            <pre><code class="language-bash">roles/
+  └── webserver/
+      ├── defaults/       # Default variables
+      │   └── main.yml
+      ├── files/          # Static files
+      ├── handlers/       # Handler definitions
+      │   └── main.yml
+      ├── meta/           # Role metadata
+      │   └── main.yml
+      ├── tasks/          # Tasks
+      │   └── main.yml
+      ├── templates/      # Jinja2 templates
+      └── vars/           # Role variables
+          └── main.yml</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Creating and Using Roles</h4>
+            <pre><code class="language-bash"># Create a new role
+ansible-galaxy init my_role
+
+# Use a role in a playbook
+---
+- hosts: webservers
+  roles:
+    - webserver
+    - database</code></pre>
+        </div>
+    </section>
+    
+    <section id="ansible-inventory">
+        <h2>Inventory Management</h2>
+        <p>Ansible inventories define the hosts and groups of hosts upon which commands, modules, and tasks operate.</p>
+        
+        <div class="command-block">
+            <h4>Basic Inventory File</h4>
+            <pre><code class="language-ini"># Simple inventory file (INI format)
+[webservers]
+web1.example.com
+web2.example.com ansible_host=192.168.1.102
+
+[dbservers]
+db1.example.com ansible_host=192.168.1.103
+db2.example.com
+
+[production:children]
+webservers
+dbservers
+
+[webservers:vars]
+http_port=80
+proxy_timeout=5</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Dynamic Inventory</h4>
+            <p>Ansible can also use dynamic inventory scripts to pull host information from external sources like cloud providers, LDAP, or CMDBs.</p>
+            <pre><code class="language-bash"># Using dynamic inventory
+ansible-playbook -i inventory_aws_ec2.yml playbook.yml
+
+# Example AWS EC2 dynamic inventory plugin configuration
+# inventory_aws_ec2.yml
+plugin: aws_ec2
+regions:
+  - us-east-1
+  - us-west-1
+keyed_groups:
+  - key: tags.Environment
+    prefix: env
+  - key: instance_type
+    prefix: type</code></pre>
+        </div>
+    </section>
+    
+    <section id="ansible-variables">
+        <h2>Variables and Facts</h2>
+        <p>Ansible uses variables to manage differences between systems. Facts are information derived from speaking with remote systems.</p>
+        
+        <div class="command-block">
+            <h4>Variable Precedence</h4>
+            <p>Ansible variables have a defined order of precedence:</p>
+            <ol>
+                <li>Command line values (-e)</li>
+                <li>play/role/task vars</li>
+                <li>inventory vars</li>
+                <li>defaults</li>
+            </ol>
+        </div>
+        
+        <div class="command-block">
+            <h4>Gathering Facts</h4>
+            <pre><code class="language-yaml"># Gathering facts in a playbook
+- hosts: all
+  gather_facts: yes
+  tasks:
+    - name: Display OS
+      debug:
+        msg: "The OS is {{ ansible_distribution }} {{ ansible_distribution_version }}"
+        
+# Manually gather facts
+ansible webservers -m setup
+
+# Filter facts
+ansible webservers -m setup -a "filter=ansible_distribution*"</code></pre>
+        </div>
+    </section>
+    
+    <section id="ansible-best-practices">
+        <h2>Best Practices</h2>
+        
+        <div class="command-block">
+            <h4>Directory Structure</h4>
+            <pre><code class="language-bash">ansible-project/
+├── inventories/
+│   ├── production/
+│   │   ├── hosts               # Production servers
+│   │   └── group_vars/         # Production variables
+│   └── staging/
+│       ├── hosts               # Staging servers
+│       └── group_vars/         # Staging variables
+├── roles/
+│   ├── common/                 # Common role
+│   ├── webserver/              # Webserver role
+│   └── database/               # Database role
+├── playbooks/
+│   ├── site.yml                # Main playbook
+│   ├── webserver.yml           # Webserver playbook
+│   └── database.yml            # Database playbook
+├── library/                    # Custom modules
+├── filter_plugins/             # Custom filters
+├── ansible.cfg                 # Ansible configuration
+└── README.md                   # Project documentation</code></pre>
+        </div>
+        
+        <div class="command-block">
+            <h4>Performance Tips</h4>
+            <ul>
+                <li>Use <code>async</code> tasks for long-running operations</li>
+                <li>Control fact gathering with <code>gather_facts: no</code> when not needed</li>
+                <li>Optimize SSH connections with <code>pipelining = True</code> in ansible.cfg</li>
+                <li>Use <code>serial</code> to limit concurrency for resource-intensive tasks</li>
+                <li>Tag tasks for selective execution with <code>ansible-playbook playbook.yml --tags "configuration,packages"</code></li>
+            </ul>
+        </div>
+        
+        <div class="command-block">
+            <h4>Security Practices</h4>
+            <ul>
+                <li>Use Ansible Vault for sensitive data: <code>ansible-vault create vars/secrets.yml</code></li>
+                <li>Implement least privilege principle when using <code>become</code></li>
+                <li>Verify playbooks with <code>--check</code> mode before running</li>
+                <li>Use SSH keys instead of passwords for authentication</li>
+                <li>Minimize use of the <code>shell</code> and <code>command</code> modules when possible</li>
+            </ul>
+        </div>
+    </section>
+</div>
